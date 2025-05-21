@@ -88,11 +88,3 @@ func printGetFeedFollowForUserRow(row database.GetFeedFollowsForUserRow) {
 	fmt.Printf("* FeedID:        %s\n", row.FeedID)
 	fmt.Printf("* FeedName:      %s\n", row.FeedName)
 }
-
-func printFeedFollow(ff database.FeedFollow) {
-	fmt.Printf("* ID:            %s\n", ff.ID)
-	fmt.Printf("* Created:       %v\n", ff.CreatedAt)
-	fmt.Printf("* Updated:       %v\n", ff.UpdatedAt)
-	fmt.Printf("* UserID:        %s\n", ff.UserID)
-	fmt.Printf("* FeedID:        %s\n", ff.FeedID)
-}
