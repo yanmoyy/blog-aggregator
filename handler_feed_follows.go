@@ -9,7 +9,31 @@ import (
 	"github.com/yanmoyy/blog-aggregator/internal/database"
 )
 
-func handlerFollow(s *state, cmd command) error {
+func handlerUnfollow(s *state, cmd command, user database.User) error {
+	if len(cmd.Args) != 1 {
+		return fmt.Errorf("usage: %s <url>", cmd.Name)
+	}
+	url := cmd.Args[0]
+
+	feed, err := s.db.GetFeedByUrl(context.Background(), url)
+	if err != nil {
+		return fmt.Errorf("couldn't get feed: %w", err)
+	}
+
+	err = s.db.DeleteFeedFollow(context.Background(),
+		database.DeleteFeedFollowParams{
+			UserID: user.ID,
+			FeedID: feed.ID,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("couldn't delete feed follow: %w", err)
+	}
+	fmt.Printf("%s unfollowed successfully!\n", feed.Name)
+	return nil
+}
+
+func handlerFollow(s *state, cmd command, user database.User) error {
 	if len(cmd.Args) != 1 {
 		return fmt.Errorf("usage: %s <url>", cmd.Name)
 	}
@@ -17,10 +41,6 @@ func handlerFollow(s *state, cmd command) error {
 	feed, err := s.db.GetFeedByUrl(context.Background(), url)
 	if err != nil {
 		return fmt.Errorf("couldn't get feed by url: %w", err)
-	}
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("couldn't get user by name: %w", err)
 	}
 	row, err := s.db.CreatFeedFollow(context.Background(), database.CreatFeedFollowParams{
 		ID:        uuid.New(),
@@ -37,11 +57,7 @@ func handlerFollow(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFollowing(s *state, cmd command) error {
-	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("couldn't get user by name: %w", err)
-	}
+func handlerFollowing(s *state, cmd command, user database.User) error {
 	rows, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
 	if err != nil {
 		return fmt.Errorf("couldn't get feed follow list by userId: %w", err)

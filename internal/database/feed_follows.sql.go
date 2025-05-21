@@ -18,16 +18,18 @@ WITH
     INSERT INTO
       feed_follows (id, created_at, updated_at, user_id, feed_id)
     VALUES
-      ($1, $2, $3, $4, $5) 
-		RETURNING id, created_at, updated_at, user_id, feed_id
+      ($1, $2, $3, $4, $5)
+    RETURNING
+      id, created_at, updated_at, user_id, feed_id
   )
 SELECT
-	inserted_feed_follow.id, inserted_feed_follow.created_at, inserted_feed_follow.updated_at, inserted_feed_follow.user_id, inserted_feed_follow.feed_id,
-	feeds.name AS feed_name,
-	users.name AS user_name
-FROM inserted_feed_follow
-INNER JOIN feeds ON inserted_feed_follow.feed_id = feeds.id
-INNER JOIN users ON inserted_feed_follow.user_id = users.id
+  inserted_feed_follow.id, inserted_feed_follow.created_at, inserted_feed_follow.updated_at, inserted_feed_follow.user_id, inserted_feed_follow.feed_id,
+  feeds.name AS feed_name,
+  users.name AS user_name
+FROM
+  inserted_feed_follow
+  INNER JOIN feeds ON inserted_feed_follow.feed_id = feeds.id
+  INNER JOIN users ON inserted_feed_follow.user_id = users.id
 `
 
 type CreatFeedFollowParams struct {
@@ -69,11 +71,32 @@ func (q *Queries) CreatFeedFollow(ctx context.Context, arg CreatFeedFollowParams
 	return i, err
 }
 
+const deleteFeedFollow = `-- name: DeleteFeedFollow :exec
+DELETE FROM feed_follows
+WHERE
+  feed_id = $1 AND
+  user_id = $2
+`
+
+type DeleteFeedFollowParams struct {
+	FeedID uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) DeleteFeedFollow(ctx context.Context, arg DeleteFeedFollowParams) error {
+	_, err := q.db.ExecContext(ctx, deleteFeedFollow, arg.FeedID, arg.UserID)
+	return err
+}
+
 const getFeedFollowsForUser = `-- name: GetFeedFollowsForUser :many
-SELECT feed_follows.id, feed_follows.created_at, feed_follows.updated_at, feed_follows.user_id, feed_id, feeds.id, feeds.created_at, feeds.updated_at, name, url, feeds.user_id, feeds.name AS feed_name
-FROM feed_follows 
-INNER JOIN feeds ON feed_follows.feed_id = feeds.id
-WHERE feed_follows.user_id = $1
+SELECT
+  feed_follows.id, feed_follows.created_at, feed_follows.updated_at, feed_follows.user_id, feed_id, feeds.id, feeds.created_at, feeds.updated_at, name, url, feeds.user_id,
+  feeds.name AS feed_name
+FROM
+  feed_follows
+  INNER JOIN feeds ON feed_follows.feed_id = feeds.id
+WHERE
+  feed_follows.user_id = $1
 `
 
 type GetFeedFollowsForUserRow struct {

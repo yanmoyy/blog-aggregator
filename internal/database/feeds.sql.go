@@ -17,7 +17,8 @@ INSERT INTO
   feeds (id, created_at, updated_at, name, url, user_id)
 VALUES
   ($1, $2, $3, $4, $5, $6)
-RETURNING id, created_at, updated_at, name, url, user_id
+RETURNING
+  id, created_at, updated_at, name, url, user_id
 `
 
 type CreateFeedParams struct {
@@ -51,8 +52,12 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 }
 
 const getFeedByUrl = `-- name: GetFeedByUrl :one
-SELECT id, created_at, updated_at, name, url, user_id FROM feeds
-WHERE feeds.url = $1
+SELECT
+  id, created_at, updated_at, name, url, user_id
+FROM
+  feeds
+WHERE
+  feeds.url = $1
 `
 
 func (q *Queries) GetFeedByUrl(ctx context.Context, url string) (Feed, error) {
@@ -70,7 +75,10 @@ func (q *Queries) GetFeedByUrl(ctx context.Context, url string) (Feed, error) {
 }
 
 const getFeeds = `-- name: GetFeeds :many
-SELECT id, created_at, updated_at, name, url, user_id FROM feeds
+SELECT
+  id, created_at, updated_at, name, url, user_id
+FROM
+  feeds
 `
 
 func (q *Queries) GetFeeds(ctx context.Context) ([]Feed, error) {
